@@ -1,0 +1,92 @@
+<Window x:Class="NavisworksBcfClash.UI.ExportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:navis="clr-namespace:NavisworksBcfClash.Navis"
+        Title="Export Clashes to BCF"
+        Width="560" Height="640" MinWidth="460" MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
+
+    <DockPanel Margin="10">
+
+        <!-- Filters -->
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+            <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <ComboBox x:Name="StatusFilter" DockPanel.Dock="Right" Width="110" Margin="6,0,0,0"
+                      SelectionChanged="OnFilterChanged" />
+            <TextBox x:Name="SearchBox" TextChanged="OnFilterChanged" VerticalContentAlignment="Center" />
+        </DockPanel>
+
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
+            <Button Content="Check all" Padding="8,2" Click="OnCheckAll" />
+            <Button Content="Check none" Padding="8,2" Margin="6,0,0,0" Click="OnCheckNone" />
+            <Button Content="Expand all" Padding="8,2" Margin="6,0,0,0" Click="OnExpandAll" />
+            <Button Content="Collapse all" Padding="8,2" Margin="6,0,0,0" Click="OnCollapseAll" />
+        </StackPanel>
+
+        <!-- Options + buttons -->
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <GroupBox Header="Options" Padding="6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="BCF version:" VerticalAlignment="Center" Margin="0,2,8,2" />
+                    <ComboBox x:Name="VersionCombo" Grid.Column="1" Margin="0,2" SelectedIndex="0">
+                        <ComboBoxItem Content="BCF 2.1 (widest compatibility)" />
+                        <ComboBoxItem Content="BCF 3.0 (exact FOV + aspect ratio)" />
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="1" Text="Other elements:" VerticalAlignment="Center" Margin="0,2,8,2" />
+                    <ComboBox x:Name="OthersCombo" Grid.Row="1" Grid.Column="1" Margin="0,2" SelectedIndex="0">
+                        <ComboBoxItem Content="Dim (like Clash Detective 'Dim Other')" />
+                        <ComboBoxItem Content="Hide (like Clash Detective 'Hide Other')" />
+                        <ComboBoxItem Content="Leave as is" />
+                    </ComboBox>
+
+                    <TextBlock Grid.Row="2" Text="Author:" VerticalAlignment="Center" Margin="0,2,8,2" />
+                    <TextBox x:Name="AuthorBox" Grid.Row="2" Grid.Column="1" Margin="0,2" VerticalContentAlignment="Center" />
+
+                    <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,4,0,0">
+                        <CheckBox x:Name="SnapshotCheck" Content="Include snapshot" IsChecked="True" />
+                        <CheckBox x:Name="CommentsCheck" Content="Include clash comments" IsChecked="True" Margin="16,0,0,0" />
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+
+            <DockPanel Margin="0,8,0,0">
+                <TextBlock x:Name="CountText" VerticalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Export..." Width="90" IsDefault="True" Click="OnExport" />
+                    <Button Content="Cancel" Width="80" Margin="6,0,0,0" IsCancel="True" />
+                </StackPanel>
+            </DockPanel>
+        </StackPanel>
+
+        <TreeView x:Name="ClashTree">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="Visibility" Value="{Binding IsVisible, Converter={StaticResource BoolToVis}}" />
+                </Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type navis:ClashNode}" ItemsSource="{Binding Children}">
+                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" IsThreeState="False"
+                              Content="{Binding Display}" Click="OnNodeChecked" Margin="0,1" />
+                </HierarchicalDataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+    </DockPanel>
+</Window>

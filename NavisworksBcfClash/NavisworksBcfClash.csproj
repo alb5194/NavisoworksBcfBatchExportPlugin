@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <AssemblyName>NavisworksBcfClash</AssemblyName>
+    <RootNamespace>NavisworksBcfClash</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <!-- Navisworks version/install; override with -p:NavisworksVersion=2026 etc. -->
+    <NavisworksVersion Condition="'$(NavisworksVersion)' == ''">2025</NavisworksVersion>
+    <NavisworksInstallPath Condition="'$(NavisworksInstallPath)' == ''">C:\Program Files\Autodesk\Navisworks Manage $(NavisworksVersion)</NavisworksInstallPath>
+
+    <!-- Per-user plugin folder: Navisworks requires the folder name to match the DLL name -->
+    <NavisworksPluginDir>$(APPDATA)\Autodesk Navisworks Manage $(NavisworksVersion)\Plugins\$(AssemblyName)</NavisworksPluginDir>
+    <DeployToNavisworks Condition="'$(DeployToNavisworks)' == ''">true</DeployToNavisworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Autodesk.Navisworks.Api">
+      <HintPath>$(NavisworksInstallPath)\Autodesk.Navisworks.Api.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Autodesk.Navisworks.Clash">
+      <HintPath>$(NavisworksInstallPath)\Autodesk.Navisworks.Clash.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+  </ItemGroup>
+
+  <Target Name="DeployPlugin" AfterTargets="Build" Condition="'$(DeployToNavisworks)' == 'true'">
+    <MakeDir Directories="$(NavisworksPluginDir)" />
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(NavisworksPluginDir)" SkipUnchangedFiles="true" ContinueOnError="true" />
+    <Message Importance="high" Text="Deployed plugin to $(NavisworksPluginDir)" />
+  </Target>
+
+</Project>
