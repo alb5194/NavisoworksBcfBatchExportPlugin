@@ -11,7 +11,7 @@ using System.Xml.Linq;
 namespace NavisworksBcfClash.Bcf
 {
     /// <summary>
-    /// Writes a .bcfzip (BCF 2.1 or 3.0) from in-memory topics. Has no Navisworks dependency.
+    /// Writes a .bcf file (BCF 2.1 or 3.0 zip container) from in-memory topics. Has no Navisworks dependency.
     /// </summary>
     public class BcfWriter
     {

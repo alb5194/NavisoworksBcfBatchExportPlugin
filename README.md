@@ -1,6 +1,6 @@
 # Clash to BCF (Navisworks Manage plugin)
 
-Exports one or many Clash Detective results to a `.bcfzip`. Each clash becomes one BCF topic, and its view matches the one Clash Detective shows.
+Exports one or many Clash Detective results to a `.bcf` file. Each clash becomes one BCF topic, and its view matches the one Clash Detective shows.
 
 ## What gets exported per clash
 

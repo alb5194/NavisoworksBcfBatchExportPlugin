@@ -26,7 +26,7 @@ namespace NavisworksBcfClash.UI
                 ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
                 : Path.GetDirectoryName(documentPath);
             _defaultName = (string.IsNullOrEmpty(documentPath) ? "Clashes" : Path.GetFileNameWithoutExtension(documentPath))
-                           + "_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".bcfzip";
+                           + "_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".bcf";
 
             ClashTree.ItemsSource = _roots;
             AuthorBox.Text = Environment.UserName;
@@ -129,7 +129,9 @@ namespace NavisworksBcfClash.UI
             var dialog = new SaveFileDialog
             {
                 Title = "Save BCF",
-                Filter = "BCF file (*.bcfzip)|*.bcfzip|BCF file (*.bcf)|*.bcf",
+                Filter = "BCF file (*.bcf)|*.bcf|BCF zip (*.bcfzip)|*.bcfzip",
+                DefaultExt = "bcf",
+                AddExtension = true,
                 InitialDirectory = _defaultFolder,
                 FileName = _defaultName,
                 OverwritePrompt = true

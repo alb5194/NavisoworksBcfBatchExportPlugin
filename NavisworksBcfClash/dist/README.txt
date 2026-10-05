@@ -1,7 +1,7 @@
 CLASH TO BCF - Navisworks Manage plugin
 =======================================
 
-Exports Clash Detective results to a BCF file (.bcfzip). Each clash keeps
+Exports Clash Detective results to a BCF file (.bcf). Each clash keeps
 the same view you see in Clash Detective.
 
 https://github.com/alb5194/NavisoworksBcfBatchExportPlugin
@@ -53,7 +53,7 @@ HOW TO USE
    - Other elements: Dim or Hide, like Clash Detective's "Dim Other" and
      "Hide Other". Or leave the rest of the model as it is.
    - Author, snapshot, and whether to include clash comments.
-5. Click Export... and choose where to save the .bcfzip.
+5. Click Export... and choose where to save the .bcf file.
 
 Each clash becomes one BCF issue with:
 - a snapshot of the clash view (Item 1 red, Item 2 green)
