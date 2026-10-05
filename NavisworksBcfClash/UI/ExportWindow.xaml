@@ -44,6 +44,7 @@
 
                     <TextBlock Text="BCF version:" VerticalAlignment="Center" Margin="0,2,8,2" />
                     <ComboBox x:Name="VersionCombo" Grid.Column="1" Margin="0,2" SelectedIndex="0">
+                        <ComboBoxItem Content="BCF 2.1 for Autodesk Forma (isolates the clash)" />
                         <ComboBoxItem Content="BCF 2.1 (widest compatibility)" />
                         <ComboBoxItem Content="BCF 3.0 (exact FOV + aspect ratio)" />
                     </ComboBox>

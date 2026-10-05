@@ -35,6 +35,9 @@ namespace NavisworksBcfClash.Navis
 
         /// <summary>Write a section box (6 BCF clipping planes) around the clash area.</summary>
         public bool SectionBox { get; set; }
+
+        /// <summary>Write BCF 2.1 the way Autodesk Forma exports it, and always isolate the clashing pair.</summary>
+        public bool FormaCompatible { get; set; }
         public string Author { get; set; } = Environment.UserName;
     }
 
@@ -138,6 +141,7 @@ namespace NavisworksBcfClash.Navis
                 var writer = new BcfWriter
                 {
                     Version = _options.Version,
+                    FormaCompatible = _options.FormaCompatible,
                     ProjectName = Path.GetFileNameWithoutExtension(_doc.FileName),
                     SourceFileName = string.IsNullOrEmpty(_doc.FileName) ? null : Path.GetFileName(_doc.FileName)
                 };
@@ -177,7 +181,8 @@ namespace NavisworksBcfClash.Navis
             if (c2 != null)
                 viewpoint.Coloring.Add(new BcfColoring { Color = Item2Hex, Components = { c2 } });
 
-            if (_options.Others == OthersDisplay.Hide)
+            // Forma: always isolate the pair, the way Forma itself exports an isolated issue
+            if (_options.Others == OthersDisplay.Hide || _options.FormaCompatible)
             {
                 viewpoint.DefaultVisibility = false;
                 foreach (var c in new[] { c1, c2 }.Where(c => c != null))

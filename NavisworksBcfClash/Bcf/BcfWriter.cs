@@ -23,6 +23,13 @@ namespace NavisworksBcfClash.Bcf
         public string ProjectName { get; set; }
         public string SourceFileName { get; set; }
 
+        /// <summary>
+        /// Mirror the BCF 2.1 flavour Autodesk Forma (ACC) exports: Selected="true" on selected components,
+        /// IfcGuid-only components, "<guid>_viewpoint.bcfv" file names, no project/header, and a comment
+        /// linked to the viewpoint on every topic.
+        /// </summary>
+        public bool FormaCompatible { get; set; }
+
         public void Write(string path, IEnumerable<BcfTopic> topics)
         {
             var topicList = topics.ToList();
@@ -34,7 +41,7 @@ namespace NavisworksBcfClash.Bcf
             {
                 AddXml(zip, "bcf.version", BuildVersion());
 
-                if (!string.IsNullOrWhiteSpace(ProjectName))
+                if (!string.IsNullOrWhiteSpace(ProjectName) && !FormaCompatible)
                     AddXml(zip, "project.bcfp", BuildProject());
 
                 if (Version == BcfVersion.V30)
@@ -47,7 +54,7 @@ namespace NavisworksBcfClash.Bcf
 
                     if (topic.Viewpoint != null)
                     {
-                        AddXml(zip, folder + "viewpoint.bcfv", BuildVisInfo(topic.Viewpoint));
+                        AddXml(zip, folder + ViewpointFileName(topic.Viewpoint), BuildVisInfo(topic.Viewpoint));
 
                         if (topic.Viewpoint.SnapshotPng != null)
                         {
@@ -107,6 +114,8 @@ namespace NavisworksBcfClash.Bcf
 
         private XElement BuildHeader()
         {
+            if (FormaCompatible)
+                return new XElement("Header");
             if (string.IsNullOrWhiteSpace(SourceFileName))
                 return null;
 
@@ -137,7 +146,7 @@ namespace NavisworksBcfClash.Bcf
             var markup = new XElement("Markup",
                 BuildHeader(),
                 topic,
-                t.Comments.Select(c => BuildComment(c, t.Viewpoint)));
+                CommentsFor(t).Select(c => BuildComment(c, t.Viewpoint)));
 
             if (t.Viewpoint != null)
                 markup.Add(BuildViewpointRef(t.Viewpoint, "Viewpoints"));
@@ -164,21 +173,32 @@ namespace NavisworksBcfClash.Bcf
             return new XDocument(new XElement("Markup", BuildHeader(), topic));
         }
 
-        private static XElement BuildComment(BcfComment c, BcfViewpoint vp)
+        /// <summary>Forma links each topic's viewpoint through a comment, so make sure there is at least one.</summary>
+        private IEnumerable<BcfComment> CommentsFor(BcfTopic t)
+        {
+            if (FormaCompatible && t.Viewpoint != null && t.Comments.Count == 0)
+                return new[] { new BcfComment { Date = t.CreationDate, Author = t.CreationAuthor, Text = string.Empty } };
+            return t.Comments;
+        }
+
+        private XElement BuildComment(BcfComment c, BcfViewpoint vp)
         {
             return new XElement("Comment",
                 new XAttribute("Guid", c.Guid),
                 new XElement("Date", FormatDate(c.Date)),
                 new XElement("Author", string.IsNullOrWhiteSpace(c.Author) ? "Unknown" : c.Author),
-                new XElement("Comment", string.IsNullOrWhiteSpace(c.Text) ? "-" : c.Text),
+                new XElement("Comment", string.IsNullOrWhiteSpace(c.Text) ? (FormaCompatible ? string.Empty : "-") : c.Text),
                 vp != null ? new XElement("Viewpoint", new XAttribute("Guid", vp.Guid)) : null);
         }
 
-        private static XElement BuildViewpointRef(BcfViewpoint vp, string elementName)
+        private string ViewpointFileName(BcfViewpoint vp) =>
+            FormaCompatible ? vp.Guid + "_viewpoint.bcfv" : "viewpoint.bcfv";
+
+        private XElement BuildViewpointRef(BcfViewpoint vp, string elementName)
         {
             return new XElement(elementName,
                 new XAttribute("Guid", vp.Guid),
-                new XElement("Viewpoint", "viewpoint.bcfv"),
+                new XElement("Viewpoint", ViewpointFileName(vp)),
                 vp.SnapshotPng != null ? new XElement("Snapshot", "snapshot.png") : null);
         }
 
@@ -195,21 +215,21 @@ namespace NavisworksBcfClash.Bcf
             if (Version == BcfVersion.V30)
                 visibility.Add(hints);
             if (vp.VisibilityExceptions.Count > 0)
-                visibility.Add(new XElement("Exceptions", vp.VisibilityExceptions.Select(BuildComponent)));
+                visibility.Add(new XElement("Exceptions", vp.VisibilityExceptions.Select(c => BuildComponent(c))));
 
             var coloring = vp.Coloring.Where(c => c.Components.Count > 0).ToList();
 
             root.Add(new XElement("Components",
                 Version == BcfVersion.V21 ? hints : null,
-                vp.Selection.Count > 0 ? new XElement("Selection", vp.Selection.Select(BuildComponent)) : null,
+                vp.Selection.Count > 0 ? new XElement("Selection", vp.Selection.Select(c => BuildComponent(c, selected: true))) : null,
                 visibility,
                 coloring.Count > 0
                     ? new XElement("Coloring", coloring.Select(c =>
                         new XElement("Color",
                             new XAttribute("Color", c.Color.ToUpperInvariant()),
                             Version == BcfVersion.V30
-                                ? (object)new XElement("Components", c.Components.Select(BuildComponent))
-                                : c.Components.Select(BuildComponent))))
+                                ? (object)new XElement("Components", c.Components.Select(x => BuildComponent(x)))
+                                : c.Components.Select(x => BuildComponent(x)))))
                     : null));
 
             if (vp.Camera != null)
@@ -265,8 +285,15 @@ namespace NavisworksBcfClash.Bcf
                 Version == BcfVersion.V30 ? new XElement("AspectRatio", Num(cam.AspectRatio)) : null);
         }
 
-        private static XElement BuildComponent(BcfComponent c)
+        private XElement BuildComponent(BcfComponent c, bool selected = false)
         {
+            if (FormaCompatible)
+            {
+                return new XElement("Component",
+                    string.IsNullOrEmpty(c.IfcGuid) ? null : new XAttribute("IfcGuid", c.IfcGuid),
+                    selected ? new XAttribute("Selected", "true") : null);
+            }
+
             return new XElement("Component",
                 string.IsNullOrEmpty(c.IfcGuid) ? null : new XAttribute("IfcGuid", c.IfcGuid),
                 Opt("OriginatingSystem", c.OriginatingSystem),

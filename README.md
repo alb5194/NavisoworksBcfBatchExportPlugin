@@ -14,6 +14,13 @@ Exports one or many Clash Detective results to a `.bcf` file. Each clash becomes
 
 Coordinates are converted to meters, as BCF requires.
 
+**BCF 2.1 for Autodesk Forma** (the default) writes BCF 2.1 the way Forma itself exports issues, and always isolates the two clashing elements:
+- `DefaultVisibility="false"` with the clashing pair as the exceptions.
+- `Selected="true"` on the selected components.
+- Components that carry only the `IfcGuid`.
+- Viewpoint files named `<guid>_viewpoint.bcfv`.
+- A comment linked to the viewpoint on every topic.
+
 The optional **Section box around clash** adds six BCF clipping planes boxing the clash area (`ViewBounds`). Viewers that apply clipping planes then show only that area.
 
 **BCF 2.1** limits FieldOfView to 45–60°. When the Navisworks FOV falls outside that range, the plugin clamps it and moves the camera along its view direction. The clash then stays the same size on screen. **BCF 3.0** keeps the exact FOV and also writes the aspect ratio.

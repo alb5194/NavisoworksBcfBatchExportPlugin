@@ -142,7 +142,8 @@ namespace NavisworksBcfClash.UI
             Options = new ExportOptions
             {
                 OutputPath = dialog.FileName,
-                Version = VersionCombo.SelectedIndex == 1 ? BcfVersion.V30 : BcfVersion.V21,
+                Version = VersionCombo.SelectedIndex == 2 ? BcfVersion.V30 : BcfVersion.V21,
+                FormaCompatible = VersionCombo.SelectedIndex == 0,
                 Others = (OthersDisplay)Math.Max(0, OthersCombo.SelectedIndex),
                 Author = string.IsNullOrWhiteSpace(AuthorBox.Text) ? Environment.UserName : AuthorBox.Text.Trim(),
                 IncludeSnapshot = SnapshotCheck.IsChecked == true,

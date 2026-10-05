@@ -48,8 +48,12 @@ HOW TO USE
 3. Tick the clash tests, groups or single clashes you want to export.
    Use the filter box and the status list to narrow the list down.
 4. Choose your options:
-   - BCF version: 2.1 works with most tools. 3.0 keeps the exact field of
-     view.
+   - BCF version:
+       "for Autodesk Forma": BCF 2.1 written the way Forma exports it.
+         The two clashing elements are always isolated (everything else
+         hidden). Use this when importing into Forma / Autodesk Docs.
+       "2.1": works with most other tools (BIMcollab, Revit, Solibri...).
+       "3.0": keeps the exact field of view.
    - Other elements: Dim or Hide, like Clash Detective's "Dim Other" and
      "Hide Other". Or leave the rest of the model as it is.
    - Author, snapshot, and whether to include clash comments.
