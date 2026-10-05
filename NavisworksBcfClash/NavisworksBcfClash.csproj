@@ -68,6 +68,12 @@
     <MakeDir Directories="$(LocalBundleDir)\Contents\$(NavisworksVersion)" />
     <Copy SourceFiles="$(TargetPath);$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(LocalBundleDir)\Contents\$(NavisworksVersion)" />
     <WriteLinesToFile File="$(LocalBundleDir)\PackageContents.xml" Lines="$(PackageContentsXml)" Overwrite="true" Encoding="utf-8" />
+
+    <!-- End-user install/usage readme, shipped next to the bundle in the release zip -->
+    <PropertyGroup>
+      <ReadmeText>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\dist\README.txt').Replace('{NAVIS_VERSION}', '$(NavisworksVersion)'))</ReadmeText>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(TargetDir)bundle\README.txt" Lines="$([MSBuild]::Escape($(ReadmeText)))" Overwrite="true" Encoding="utf-8" />
   </Target>
 
   <Target Name="DeployPlugin" AfterTargets="BuildBundle" Condition="'$(DeployToNavisworks)' == 'true'">
