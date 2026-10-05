@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -61,6 +60,7 @@ namespace NavisworksBcfClash.Navis
         private readonly ExportOptions _options;
         private readonly ComponentResolver _resolver = new ComponentResolver();
         private readonly double _toMeters;
+        private readonly ClashComViews _comViews;
 
         // Items hidden by us for the current clash (so we can un-hide exactly those).
         private readonly ModelItemCollection _hiddenByUs = new ModelItemCollection();
@@ -70,6 +70,15 @@ namespace NavisworksBcfClash.Navis
             _doc = doc;
             _options = options;
             _toMeters = UnitConversion.ScaleFactor(doc.Units, Units.Meters);
+
+            try
+            {
+                _comViews = new ClashComViews();
+            }
+            catch
+            {
+                _comViews = null;
+            }
         }
 
         public ExportResult Export(IList<ClashNode> results)
@@ -144,8 +153,8 @@ namespace NavisworksBcfClash.Navis
             // 1) Same display as Clash Detective: item colors + dim/hide other
             ApplyClashDisplay(result);
 
-            // 2) Same camera as Clash Detective: saved result viewpoint, otherwise auto-zoom on the clash
-            _doc.CurrentViewpoint.CopyFrom(GetClashViewpoint(result, baseViewpoint));
+            // 2) Same camera as Clash Detective: saved result viewpoint, otherwise Navisworks' own clash viewpoint
+            ApplyClashViewpoint(node, baseViewpoint);
 
             // 3) Read back the camera actually used, and capture exactly what is rendered
             Viewpoint current = _doc.CurrentViewpoint.Value;
@@ -179,8 +188,8 @@ namespace NavisworksBcfClash.Navis
                 TopicType = "Clash",
                 TopicStatus = MapStatus(result.Status),
                 CreationAuthor = _options.Author,
-                CreationDate = GetMember<DateTime?>(result, "CreatedTime") ?? DateTime.UtcNow,
-                AssignedTo = GetMember<string>(result, "AssignedTo"),
+                CreationDate = result.CreatedTime ?? DateTime.UtcNow,
+                AssignedTo = result.AssignedTo,
                 Viewpoint = viewpoint
             };
 
@@ -196,18 +205,24 @@ namespace NavisworksBcfClash.Navis
 
         #region View reproduction
 
-        private Viewpoint GetClashViewpoint(ClashResult result, Viewpoint baseViewpoint)
+        private void ApplyClashViewpoint(ClashNode node, Viewpoint baseViewpoint)
         {
-            // A result keeps its own viewpoint once it was saved/adjusted in Clash Detective.
-            Viewpoint saved = GetMember<Viewpoint>(result, "Viewpoint");
-            if (saved != null)
-                return saved.CreateCopy();
+            ClashResult result = node.Result;
+            try
+            {
+                if (_comViews != null && _comViews.TryApply(node.Test?.DisplayName, result.DisplayName, result.HasSavedViewpoint))
+                    return;
+            }
+            catch
+            {
+                // fall back to zooming on the clash below
+            }
 
             Viewpoint vp = baseViewpoint.CreateCopy();
             BoundingBox3D box = GetClashBounds(result);
             if (box != null && !box.IsEmpty)
                 vp.ZoomBox(box);
-            return vp;
+            _doc.CurrentViewpoint.CopyFrom(vp);
         }
 
         private static BoundingBox3D GetClashBounds(ClashResult result)
@@ -368,7 +383,7 @@ namespace NavisworksBcfClash.Navis
                 width = _options.MaxSnapshotWidth;
             }
 
-            using (Bitmap bitmap = view.GenerateImage(ImageGenerationStyle.ScenePlusOverlay, width, height))
+            using (Bitmap bitmap = view.GenerateImage(ImageGenerationStyle.ScenePlusOverlay, width, height, true))
             using (var ms = new MemoryStream())
             {
                 bitmap.Save(ms, ImageFormat.Png);
@@ -390,7 +405,7 @@ namespace NavisworksBcfClash.Navis
             Point3D c = result.Center;
             sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "Clash point: X={0:0.###} Y={1:0.###} Z={2:0.###} m",
                 c.X * _toMeters, c.Y * _toMeters, c.Z * _toMeters));
-            string description = GetMember<string>(result, "Description");
+            string description = result.Description;
             if (!string.IsNullOrWhiteSpace(description))
                 sb.AppendLine($"Notes: {description}");
             sb.AppendLine($"Item 1 (red): {DescribeItem(result.Item1)}");
@@ -428,36 +443,20 @@ namespace NavisworksBcfClash.Navis
 
         private IEnumerable<BcfComment> ReadComments(ClashResult result)
         {
-            // Accessed reflectively: the Comment type/member names have shifted across Navisworks releases.
-            if (!(GetMember<object>(result, "Comments") is IEnumerable comments))
+            if (result.Comments == null)
                 yield break;
 
-            foreach (object comment in comments)
+            foreach (Comment comment in result.Comments)
             {
-                string body = GetMember<string>(comment, "Body");
-                if (string.IsNullOrWhiteSpace(body))
+                if (string.IsNullOrWhiteSpace(comment.Body))
                     continue;
 
                 yield return new BcfComment
                 {
-                    Text = body,
-                    Author = GetMember<string>(comment, "Author") ?? _options.Author,
-                    Date = GetMember<DateTime?>(comment, "CreationDate") ?? DateTime.UtcNow
+                    Text = comment.Body,
+                    Author = string.IsNullOrWhiteSpace(comment.Author) ? _options.Author : comment.Author,
+                    Date = comment.CreationDate
                 };
-            }
-        }
-
-        private static T GetMember<T>(object source, string name)
-        {
-            try
-            {
-                var property = source?.GetType().GetProperty(name);
-                object value = property?.GetValue(source, null);
-                return value is T typed ? typed : default;
-            }
-            catch
-            {
-                return default;
             }
         }
 

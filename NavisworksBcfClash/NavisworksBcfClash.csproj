@@ -15,7 +15,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
     <!-- Navisworks version/install; override with -p:NavisworksVersion=2026 etc. -->
-    <NavisworksVersion Condition="'$(NavisworksVersion)' == ''">2025</NavisworksVersion>
+    <NavisworksVersion Condition="'$(NavisworksVersion)' == ''">2024</NavisworksVersion>
     <NavisworksInstallPath Condition="'$(NavisworksInstallPath)' == ''">C:\Program Files\Autodesk\Navisworks Manage $(NavisworksVersion)</NavisworksInstallPath>
 
     <!-- Per-user plugin folder: Navisworks requires the folder name to match the DLL name -->
@@ -31,6 +31,15 @@
     <Reference Include="Autodesk.Navisworks.Clash">
       <HintPath>$(NavisworksInstallPath)\Autodesk.Navisworks.Clash.dll</HintPath>
       <Private>false</Private>
+    </Reference>
+    <Reference Include="Autodesk.Navisworks.ComApi">
+      <HintPath>$(NavisworksInstallPath)\Autodesk.Navisworks.ComApi.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Autodesk.Navisworks.Interop.ComApi">
+      <HintPath>$(NavisworksInstallPath)\Autodesk.Navisworks.Interop.ComApi.dll</HintPath>
+      <Private>false</Private>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
     </Reference>
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
