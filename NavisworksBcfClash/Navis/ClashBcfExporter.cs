@@ -32,6 +32,9 @@ namespace NavisworksBcfClash.Navis
         public bool IncludeSnapshot { get; set; } = true;
         public int MaxSnapshotWidth { get; set; } = 1920;
         public bool IncludeComments { get; set; } = true;
+
+        /// <summary>Write a section box (6 BCF clipping planes) around the clash area.</summary>
+        public bool SectionBox { get; set; }
         public string Author { get; set; } = Environment.UserName;
     }
 
@@ -179,6 +182,17 @@ namespace NavisworksBcfClash.Navis
                 viewpoint.DefaultVisibility = false;
                 foreach (var c in new[] { c1, c2 }.Where(c => c != null))
                     viewpoint.VisibilityExceptions.Add(c);
+            }
+
+            if (_options.SectionBox)
+            {
+                BoundingBox3D box = GetClashBounds(result);
+                if (box != null && !box.IsEmpty)
+                {
+                    viewpoint.AddSectionBox(
+                        new Vec3(box.Min.X, box.Min.Y, box.Min.Z) * _toMeters,
+                        new Vec3(box.Max.X, box.Max.Y, box.Max.Z) * _toMeters);
+                }
             }
 
             var topic = new BcfTopic

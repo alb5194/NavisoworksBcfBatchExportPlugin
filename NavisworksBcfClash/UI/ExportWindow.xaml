@@ -58,10 +58,12 @@
                     <TextBlock Grid.Row="2" Text="Author:" VerticalAlignment="Center" Margin="0,2,8,2" />
                     <TextBox x:Name="AuthorBox" Grid.Row="2" Grid.Column="1" Margin="0,2" VerticalContentAlignment="Center" />
 
-                    <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,4,0,0">
+                    <WrapPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,4,0,0">
                         <CheckBox x:Name="SnapshotCheck" Content="Include snapshot" IsChecked="True" />
                         <CheckBox x:Name="CommentsCheck" Content="Include clash comments" IsChecked="True" Margin="16,0,0,0" />
-                    </StackPanel>
+                        <CheckBox x:Name="SectionBoxCheck" Content="Section box around clash" Margin="16,0,0,0"
+                                  ToolTip="Adds BCF clipping planes boxing the clash area, so viewers that support sectioning show only that area." />
+                    </WrapPanel>
                 </Grid>
             </GroupBox>
 

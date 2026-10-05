@@ -14,6 +14,8 @@ Exports one or many Clash Detective results to a `.bcf` file. Each clash becomes
 
 Coordinates are converted to meters, as BCF requires.
 
+The optional **Section box around clash** adds six BCF clipping planes boxing the clash area (`ViewBounds`). Viewers that apply clipping planes then show only that area.
+
 **BCF 2.1** limits FieldOfView to 45–60°. When the Navisworks FOV falls outside that range, the plugin clamps it and moves the camera along its view direction. The clash then stays the same size on screen. **BCF 3.0** keeps the exact FOV and also writes the aspect ratio.
 
 ## Install from a release

@@ -215,6 +215,15 @@ namespace NavisworksBcfClash.Bcf
             if (vp.Camera != null)
                 root.Add(BuildCamera(vp.Camera));
 
+            // Schema order: camera, Lines, ClippingPlanes, Bitmap(s)
+            if (vp.ClippingPlanes.Count > 0)
+            {
+                root.Add(new XElement("ClippingPlanes", vp.ClippingPlanes.Select(p =>
+                    new XElement("ClippingPlane",
+                        Point("Location", p.Location),
+                        Point("Direction", p.Direction.Normalized())))));
+            }
+
             return new XDocument(root);
         }
 

@@ -80,6 +80,34 @@ namespace NavisworksBcfClash.Bcf
         public bool DefaultVisibility { get; set; } = true;
         public List<BcfComponent> VisibilityExceptions { get; } = new List<BcfComponent>();
         public List<BcfColoring> Coloring { get; } = new List<BcfColoring>();
+
+        /// <summary>Clipping planes in meters. Per BCF, Direction points to the clipped (invisible) half-space.</summary>
+        public List<BcfClippingPlane> ClippingPlanes { get; } = new List<BcfClippingPlane>();
+
+        /// <summary>Adds the 6 planes of an axis-aligned section box (meters); everything outside is clipped.</summary>
+        public void AddSectionBox(Vec3 min, Vec3 max)
+        {
+            // Locations sit on the box faces (face centers), which some viewers expect.
+            Vec3 c = (min + max) * 0.5;
+            ClippingPlanes.Add(new BcfClippingPlane(new Vec3(max.X, c.Y, c.Z), new Vec3(1, 0, 0)));
+            ClippingPlanes.Add(new BcfClippingPlane(new Vec3(min.X, c.Y, c.Z), new Vec3(-1, 0, 0)));
+            ClippingPlanes.Add(new BcfClippingPlane(new Vec3(c.X, max.Y, c.Z), new Vec3(0, 1, 0)));
+            ClippingPlanes.Add(new BcfClippingPlane(new Vec3(c.X, min.Y, c.Z), new Vec3(0, -1, 0)));
+            ClippingPlanes.Add(new BcfClippingPlane(new Vec3(c.X, c.Y, max.Z), new Vec3(0, 0, 1)));
+            ClippingPlanes.Add(new BcfClippingPlane(new Vec3(c.X, c.Y, min.Z), new Vec3(0, 0, -1)));
+        }
+    }
+
+    public class BcfClippingPlane
+    {
+        public BcfClippingPlane(Vec3 location, Vec3 direction)
+        {
+            Location = location;
+            Direction = direction;
+        }
+
+        public Vec3 Location { get; }
+        public Vec3 Direction { get; }
     }
 
     public class BcfComment

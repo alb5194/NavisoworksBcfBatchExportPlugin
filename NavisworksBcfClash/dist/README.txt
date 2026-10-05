@@ -53,6 +53,8 @@ HOW TO USE
    - Other elements: Dim or Hide, like Clash Detective's "Dim Other" and
      "Hide Other". Or leave the rest of the model as it is.
    - Author, snapshot, and whether to include clash comments.
+   - Section box around clash: adds a section box (BCF clipping planes)
+     around the clash area, for viewers that support sectioning.
 5. Click Export... and choose where to save the .bcf file.
 
 Each clash becomes one BCF issue with:

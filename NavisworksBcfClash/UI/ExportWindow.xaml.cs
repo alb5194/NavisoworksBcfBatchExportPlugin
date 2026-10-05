@@ -146,7 +146,8 @@ namespace NavisworksBcfClash.UI
                 Others = (OthersDisplay)Math.Max(0, OthersCombo.SelectedIndex),
                 Author = string.IsNullOrWhiteSpace(AuthorBox.Text) ? Environment.UserName : AuthorBox.Text.Trim(),
                 IncludeSnapshot = SnapshotCheck.IsChecked == true,
-                IncludeComments = CommentsCheck.IsChecked == true
+                IncludeComments = CommentsCheck.IsChecked == true,
+                SectionBox = SectionBoxCheck.IsChecked == true
             };
             SelectedResults = selected;
             DialogResult = true;
