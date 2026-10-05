@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ribbon layout for the PCMR tab. Navisworks reads this as a loose file from en-US\ beside the DLL.
+     Button text, tooltips and icons come from the [Command] attributes in ClashBcfPlugin.cs. -->
+<RibbonControl
+    x:Uid="PCMR_Ribbon" xmlns="clr-namespace:Autodesk.Windows;assembly=AdWindows"
+    xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:adwi="clr-namespace:Autodesk.Internal.Windows;assembly=AdWindows"
+    xmlns:system="clr-namespace:System;assembly=mscorlib"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Autodesk.Navisworks.Gui.Roamer.AIRLook;assembly=navisworks.gui.roamer">
+
+  <RibbonTab Id="ID_PCMR_Tab" Title="PCMR" KeyTip="PC">
+
+    <RibbonPanel x:Uid="PCMR_Panel_Bcf">
+      <RibbonPanelSource x:Uid="PCMR_Source_Bcf" KeyTip="BC" Title="BCF">
+
+        <local:NWRibbonButton x:Uid="PCMR_ClashToBcf" Id="ID_PCMR_ClashToBcf"
+                              Size="Large"
+                              KeyTip="CB"
+                              ShowText="True"
+                              Orientation="Vertical" />
+
+      </RibbonPanelSource>
+    </RibbonPanel>
+
+  </RibbonTab>
+</RibbonControl>

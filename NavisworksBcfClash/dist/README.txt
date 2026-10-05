@@ -36,15 +36,15 @@ INSTALL
    (NavisworksBcfClash.bundle\NavisworksBcfClash.bundle\...).
 
 4. Start (or restart) Navisworks.
-   The command is on the ribbon: Tool Add-ins 1 > Clash to BCF.
-   If you don't see the "Tool Add-ins 1" tab, right-click the ribbon >
-   Show Tabs > Tool Add-ins 1.
+   The command is on the ribbon: PCMR tab > BCF panel > Clash to BCF.
+   If you don't see the "PCMR" tab, right-click the ribbon >
+   Show Tabs > PCMR.
 
 
 HOW TO USE
 ----------
 1. Run your clash tests in Clash Detective.
-2. Click Tool Add-ins 1 > Clash to BCF.
+2. Click PCMR > Clash to BCF.
 3. Tick the clash tests, groups or single clashes you want to export.
    Use the filter box and the status list to narrow the list down.
 4. Choose your options:

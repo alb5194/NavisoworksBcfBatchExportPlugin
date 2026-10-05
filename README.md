@@ -20,7 +20,7 @@ Coordinates are converted to meters, as BCF requires.
 
 1. Download `NavisworksBcfClash-<version>-Navisworks2024.zip` from Releases. Before extracting, right-click it, choose **Properties**, tick **Unblock** and click OK. Otherwise Windows may stop Navisworks from loading the plugin.
 2. Extract the `NavisworksBcfClash.bundle` folder into `%APPDATA%\Autodesk\ApplicationPlugins\`. No admin rights are needed.
-3. Restart Navisworks Manage 2024. The command is under **Tool Add-ins 1 → Clash to BCF**. If the tab is missing, right-click the ribbon and turn it on under **Show Tabs**.
+3. Restart Navisworks Manage 2024. The command is under **PCMR** ribbon tab → **BCF** panel → **Clash to BCF**. If the tab is missing, right-click the ribbon and turn it on under **Show Tabs**.
 
 The zip also contains a `README.txt` with these steps, plus usage, uninstall and troubleshooting notes.
 

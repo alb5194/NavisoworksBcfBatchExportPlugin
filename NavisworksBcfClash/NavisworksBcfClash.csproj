@@ -48,6 +48,13 @@
     <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The ribbon XAML is read by Navisworks at runtime, not compiled into the assembly -->
+    <Page Remove="Ribbon\**" />
+    <None Include="Ribbon\**" />
+    <RibbonIcon Include="Images\*.ico" />
+  </ItemGroup>
+
   <!-- Builds bin\<config>\bundle\NavisworksBcfClash.bundle (PackageContents.xml + Contents\<version>\*.dll) -->
   <Target Name="BuildBundle" AfterTargets="Build">
     <PropertyGroup>
@@ -67,6 +74,9 @@
     </PropertyGroup>
     <MakeDir Directories="$(LocalBundleDir)\Contents\$(NavisworksVersion)" />
     <Copy SourceFiles="$(TargetPath);$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(LocalBundleDir)\Contents\$(NavisworksVersion)" />
+    <!-- Ribbon layout (loose file in en-US\ beside the DLL) and button icons (Images\ beside the DLL) -->
+    <Copy SourceFiles="Ribbon\$(AssemblyName).xaml" DestinationFolder="$(LocalBundleDir)\Contents\$(NavisworksVersion)\en-US" />
+    <Copy SourceFiles="@(RibbonIcon)" DestinationFolder="$(LocalBundleDir)\Contents\$(NavisworksVersion)\Images" />
     <WriteLinesToFile File="$(LocalBundleDir)\PackageContents.xml" Lines="$(PackageContentsXml)" Overwrite="true" Encoding="utf-8" />
 
     <!-- End-user install/usage readme, shipped next to the bundle in the release zip -->
