@@ -18,17 +18,21 @@ Coordinates are converted to meters, as BCF requires.
 
 ## Install from a release
 
-Download the zip from Releases. Extract the `NavisworksBcfClash` folder into `%APPDATA%\Autodesk Navisworks Manage 2024\Plugins\`, then restart Navisworks. The release is built against Navisworks Manage 2024.
+1. Download `NavisworksBcfClash-<version>-Navisworks2024.zip` from Releases.
+2. Extract the `NavisworksBcfClash.bundle` folder into `%APPDATA%\Autodesk\ApplicationPlugins\`. No admin rights are needed.
+3. Restart Navisworks Manage 2024. The command is under **Tool Add-ins 1 → Clash to BCF**. If the tab is missing, right-click the ribbon and turn it on under **Show Tabs**.
 
 ## Build
+
+The build needs a local Navisworks Manage install, because it compiles against Autodesk's API DLLs. Those DLLs can't be redistributed, so the project can't be built on GitHub-hosted CI.
 
 ```bash
 dotnet build NavisworksBcfClash/NavisworksBcfClash.csproj -c Release -p:NavisworksVersion=2024
 ```
 
 - The build references the Navisworks API, Clash and COM API DLLs from `C:\Program Files\Autodesk\Navisworks Manage <version>`. To use another location, pass `-p:NavisworksInstallPath=...`.
-- After the build, the DLL is copied to `%APPDATA%\Autodesk Navisworks Manage <version>\Plugins\NavisworksBcfClash\`. The folder name must match the DLL name. To skip this copy, pass `-p:DeployToNavisworks=false`.
-- Restart Navisworks. The command is under **Tool Add-ins → Clash to BCF**.
+- The build creates `bin\Release\bundle\NavisworksBcfClash.bundle` and copies it to `%APPDATA%\Autodesk\ApplicationPlugins\`. To skip the copy, pass `-p:DeployToNavisworks=false`.
+- Restart Navisworks to load the new build.
 
 ## Usage
 

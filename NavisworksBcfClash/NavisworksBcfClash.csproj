@@ -13,13 +13,16 @@
     <RootNamespace>NavisworksBcfClash</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <PluginVersion>0.1.1</PluginVersion>
 
     <!-- Navisworks version/install; override with -p:NavisworksVersion=2026 etc. -->
     <NavisworksVersion Condition="'$(NavisworksVersion)' == ''">2024</NavisworksVersion>
     <NavisworksInstallPath Condition="'$(NavisworksInstallPath)' == ''">C:\Program Files\Autodesk\Navisworks Manage $(NavisworksVersion)</NavisworksInstallPath>
+    <!-- Autodesk series code is the release year minus 2003 (2024 -> Nw21) -->
+    <NavisworksSeries>Nw$([MSBuild]::Subtract($(NavisworksVersion), 2003))</NavisworksSeries>
 
-    <!-- Per-user plugin folder: Navisworks requires the folder name to match the DLL name -->
-    <NavisworksPluginDir>$(APPDATA)\Autodesk Navisworks Manage $(NavisworksVersion)\Plugins\$(AssemblyName)</NavisworksPluginDir>
+    <!-- Per-user Autodesk app bundle (no admin rights needed) -->
+    <BundleDir>$(APPDATA)\Autodesk\ApplicationPlugins\$(AssemblyName).bundle</BundleDir>
     <DeployToNavisworks Condition="'$(DeployToNavisworks)' == ''">true</DeployToNavisworks>
   </PropertyGroup>
 
@@ -45,10 +48,34 @@
     <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
 
-  <Target Name="DeployPlugin" AfterTargets="Build" Condition="'$(DeployToNavisworks)' == 'true'">
-    <MakeDir Directories="$(NavisworksPluginDir)" />
-    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(NavisworksPluginDir)" SkipUnchangedFiles="true" ContinueOnError="true" />
-    <Message Importance="high" Text="Deployed plugin to $(NavisworksPluginDir)" />
+  <!-- Builds bin\<config>\bundle\NavisworksBcfClash.bundle (PackageContents.xml + Contents\<version>\*.dll) -->
+  <Target Name="BuildBundle" AfterTargets="Build">
+    <PropertyGroup>
+      <LocalBundleDir>$(TargetDir)bundle\$(AssemblyName).bundle</LocalBundleDir>
+      <PackageContentsXml><![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage SchemaVersion="1.0" ProductType="Application" Name="Clash to BCF" AppVersion="$(PluginVersion)" FriendlyVersion="$(PluginVersion)"
+    Description="Export Clash Detective results to BCF with the same view of the clashing elements."
+    Author="alb5194" ProductCode="{7E0C5B1A-3F6D-4C1E-9A44-2B8D6F0C1E57}" UpgradeCode="{C3A9E2D4-58B7-4F0A-8E61-9D2B7A4C6F13}">
+  <CompanyDetails Name="alb5194" />
+  <Components Description="Clash to BCF for Navisworks $(NavisworksVersion)">
+    <RuntimeRequirements OS="Win64" Platform="NAVMAN|NAVSIM" SeriesMin="$(NavisworksSeries)" SeriesMax="$(NavisworksSeries)" />
+    <ComponentEntry AppName="Clash to BCF $(NavisworksVersion)" AppType="ManagedPlugin" Version="$(PluginVersion)"
+        ModuleName="./Contents/$(NavisworksVersion)/$(AssemblyName).dll"
+        AppDescription="Export Clash Detective results to BCF." />
+  </Components>
+</ApplicationPackage>]]></PackageContentsXml>
+    </PropertyGroup>
+    <MakeDir Directories="$(LocalBundleDir)\Contents\$(NavisworksVersion)" />
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(LocalBundleDir)\Contents\$(NavisworksVersion)" />
+    <WriteLinesToFile File="$(LocalBundleDir)\PackageContents.xml" Lines="$(PackageContentsXml)" Overwrite="true" Encoding="utf-8" />
+  </Target>
+
+  <Target Name="DeployPlugin" AfterTargets="BuildBundle" Condition="'$(DeployToNavisworks)' == 'true'">
+    <ItemGroup>
+      <BundleFiles Include="$(TargetDir)bundle\$(AssemblyName).bundle\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BundleFiles)" DestinationFiles="@(BundleFiles->'$(BundleDir)\%(RecursiveDir)%(Filename)%(Extension)')" ContinueOnError="true" />
+    <Message Importance="high" Text="Deployed plugin bundle to $(BundleDir) (restart Navisworks to load it)" />
   </Target>
 
 </Project>
