@@ -10,7 +10,7 @@ Exports one or many Clash Detective results to a `.bcf` file. Each clash becomes
 | Snapshot | Rendered by Navisworks from that camera at the viewport's aspect ratio. Item 1 is red, Item 2 is green, and the other elements are dimmed, hidden or left as they are. |
 | Components | Both items go in the selection and get red/green coloring. In *Hide* mode, `DefaultVisibility=false` and the two items are the only exceptions. |
 | Component ids | `IfcGuid` comes from an `IfcGUID`/`GlobalId` property. If there isn't one, it falls back to the item's `InstanceGuid`. `AuthoringToolId` is the Revit Element ID. |
-| Topic | The title is `<clash> - <test>`. The description lists the distance, clash point and both item paths. The topic is Closed if the clash is Resolved or Approved, and Open otherwise. The test name and the status are added as labels. Clash comments are included. |
+| Topic | The title is `<clash> - <test>`. The description lists the distance, clash point and both item paths. The topic is Closed if the clash is Resolved or Approved, and Open otherwise. The test name and the status are added as labels. The assignee (the result's, or else its group's) goes in `AssignedTo` and in the description. Clash comments are included. |
 
 Coordinates are converted to meters, as BCF requires.
 
@@ -49,5 +49,7 @@ dotnet build NavisworksBcfClash/NavisworksBcfClash.csproj -c Release -p:Naviswor
 
 1. Run your clash tests in Clash Detective.
 2. Open **Clash to BCF**, check the tests, groups or results you want, and pick the options. Then click **Export...**.
+
+The filters at the top narrow the list by name, by status and by **Assigned To**. The assignee list holds everyone found in the clash results, plus *(Unassigned)*. A result with no assignee of its own takes the assignee of the group it is in. Only the checked results that the filters show are exported, so you can pick a person, click **Check all** and export just their clashes.
 
 The plugin restores the current viewpoint, selection and visibility when it finishes. It also clears temporary color/transparency overrides.

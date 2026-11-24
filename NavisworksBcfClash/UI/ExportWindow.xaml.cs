@@ -12,6 +12,8 @@ namespace NavisworksBcfClash.UI
     public partial class ExportWindow : Window
     {
         private const string AllStatuses = "All statuses";
+        private const string AllAssignees = "All assignees";
+        private const string Unassigned = "(Unassigned)";
 
         private readonly List<ClashNode> _roots;
         private readonly string _defaultFolder;
@@ -36,6 +38,15 @@ namespace NavisworksBcfClash.UI
                 StatusFilter.Items.Add(status);
             StatusFilter.SelectedIndex = 0;
 
+            var allResults = _roots.SelectMany(r => r.AllResults()).ToList();
+            AssignedFilter.Items.Add(AllAssignees);
+            if (allResults.Any(r => string.IsNullOrEmpty(r.AssignedTo)))
+                AssignedFilter.Items.Add(Unassigned);
+            foreach (string person in allResults.Select(r => r.AssignedTo).Where(a => !string.IsNullOrEmpty(a))
+                         .Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(a => a, StringComparer.OrdinalIgnoreCase))
+                AssignedFilter.Items.Add(person);
+            AssignedFilter.SelectedIndex = 0;
+
             if (_roots.Count == 1)
                 _roots[0].IsExpanded = true;
 
@@ -49,8 +60,10 @@ namespace NavisworksBcfClash.UI
 
         private void UpdateCount()
         {
-            int total = _roots.Sum(r => r.CountResults());
-            CountText.Text = $"{CheckedResults().Count()} of {total} clashes selected";
+            var all = _roots.SelectMany(r => r.AllResults()).ToList();
+            int shown = all.Count(r => r.IsVisible);
+            string filtered = shown < all.Count ? $" ({shown} shown by filter)" : string.Empty;
+            CountText.Text = $"{CheckedResults().Count()} of {all.Count} clashes selected{filtered}";
         }
 
         private void OnNodeChecked(object sender, RoutedEventArgs e) => UpdateCount();
@@ -86,14 +99,28 @@ namespace NavisworksBcfClash.UI
 
             string text = SearchBox.Text?.Trim() ?? string.Empty;
             string status = StatusFilter.SelectedItem as string;
-            bool filtering = text.Length > 0 || (status != null && status != AllStatuses);
+            string assigned = AssignedFilter?.SelectedItem as string;
+            bool filtering = text.Length > 0
+                             || (status != null && status != AllStatuses)
+                             || (assigned != null && assigned != AllAssignees);
 
             foreach (var root in _roots)
-                ApplyFilter(root, text, status, filtering);
+                ApplyFilter(root, text, status, assigned, filtering);
+
+            UpdateCount();
+        }
+
+        private static bool AssignedMatches(ClashNode node, string assigned)
+        {
+            if (assigned == null || assigned == AllAssignees)
+                return true;
+            if (assigned == Unassigned)
+                return string.IsNullOrEmpty(node.AssignedTo);
+            return string.Equals(node.AssignedTo, assigned, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>Returns true when the node (or any descendant) matches. Matching test/group names show all their children.</summary>
-        private static bool ApplyFilter(ClashNode node, string text, string status, bool filtering, bool parentMatched = false)
+        private static bool ApplyFilter(ClashNode node, string text, string status, string assigned, bool filtering, bool parentMatched = false)
         {
             bool nameMatches = text.Length == 0 || node.Name.IndexOf(text, StringComparison.OrdinalIgnoreCase) >= 0;
 
@@ -101,14 +128,14 @@ namespace NavisworksBcfClash.UI
             if (node.Kind == ClashNodeKind.Result)
             {
                 bool statusMatches = status == null || status == AllStatuses || node.StatusText == status;
-                visible = statusMatches && (nameMatches || parentMatched);
+                visible = statusMatches && AssignedMatches(node, assigned) && (nameMatches || parentMatched);
             }
             else
             {
                 bool selfMatched = parentMatched || (text.Length > 0 && nameMatches);
                 visible = false;
                 foreach (var child in node.Children)
-                    visible |= ApplyFilter(child, text, status, filtering, selfMatched);
+                    visible |= ApplyFilter(child, text, status, assigned, filtering, selfMatched);
                 if (filtering && visible)
                     node.IsExpanded = true;
             }
