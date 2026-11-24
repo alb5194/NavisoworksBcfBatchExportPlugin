@@ -35,7 +35,9 @@ The zip also contains a `README.txt` with these steps, plus usage, uninstall and
 
 ## Build
 
-The build needs a local Navisworks Manage install, because it compiles against Autodesk's API DLLs. Those DLLs can't be redistributed, so the project can't be built on GitHub-hosted CI.
+A local build compiles against the API DLLs of your Navisworks Manage install.
+
+GitHub Actions (`.github/workflows/build.yml`) builds on a Windows runner without Navisworks. It compiles against the community `Chuongmep.Navis.Api.*` NuGet packages, which `.github/scripts/Get-NavisworksReferences.ps1` downloads. Those DLLs are used only to compile against and are never put in the bundle. Every push to `main` and every pull request is built, and the bundle zip is attached to the run. Pushing a tag such as `v0.1.2` also publishes a GitHub release with the zip.
 
 ```bash
 dotnet build NavisworksBcfClash/NavisworksBcfClash.csproj -c Release -p:NavisworksVersion=2024
