@@ -37,8 +37,14 @@ namespace NavisworksBcfClash.Navis
         public ClashResult Result { get; set; }
         public string StatusText { get; set; }
 
+        /// <summary>
+        /// Who the clash is assigned to: the result's own "Assigned To", or, when that is empty,
+        /// the one of the nearest group it belongs to. Empty when nobody is assigned.
+        /// </summary>
+        public string AssignedTo { get; set; } = string.Empty;
+
         public string Display => Kind == ClashNodeKind.Result
-            ? $"{Name}  [{StatusText}]"
+            ? (string.IsNullOrEmpty(AssignedTo) ? $"{Name}  [{StatusText}]" : $"{Name}  [{StatusText}]  → {AssignedTo}")
             : $"{Name}  ({CountResults()})";
 
         public bool IsExpanded
@@ -97,7 +103,8 @@ namespace NavisworksBcfClash.Navis
         {
             if (Kind == ClashNodeKind.Result)
             {
-                if (IsChecked == true)
+                // Results hidden by the dialog filters are never exported.
+                if (IsChecked == true && IsVisible)
                     yield return this;
                 yield break;
             }
@@ -141,14 +148,14 @@ namespace NavisworksBcfClash.Navis
                     continue;
 
                 var testNode = new ClashNode(ClashNodeKind.Test, test.DisplayName, null) { Test = test };
-                AddChildren(testNode, test.Children, test);
+                AddChildren(testNode, test.Children, test, string.Empty);
                 if (testNode.Children.Count > 0)
                     roots.Add(testNode);
             }
             return roots;
         }
 
-        private static void AddChildren(ClashNode parent, SavedItemCollection items, ClashTest test)
+        private static void AddChildren(ClashNode parent, SavedItemCollection items, ClashTest test, string groupAssignedTo)
         {
             foreach (SavedItem item in items)
             {
@@ -158,17 +165,21 @@ namespace NavisworksBcfClash.Navis
                     {
                         Test = test,
                         Result = result,
-                        StatusText = result.Status.ToString()
+                        StatusText = result.Status.ToString(),
+                        AssignedTo = FirstNonEmpty(result.AssignedTo, groupAssignedTo)
                     });
                 }
                 else if (item is ClashResultGroup group)
                 {
                     var groupNode = new ClashNode(ClashNodeKind.Group, group.DisplayName, parent) { Test = test };
-                    AddChildren(groupNode, group.Children, test);
+                    AddChildren(groupNode, group.Children, test, FirstNonEmpty(group.AssignedTo, groupAssignedTo));
                     if (groupNode.Children.Count > 0)
                         parent.Children.Add(groupNode);
                 }
             }
         }
+
+        private static string FirstNonEmpty(string value, string fallback) =>
+            string.IsNullOrWhiteSpace(value) ? (fallback ?? string.Empty) : value.Trim();
     }
 }

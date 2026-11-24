@@ -15,6 +15,9 @@
         <!-- Filters -->
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
             <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <ComboBox x:Name="AssignedFilter" DockPanel.Dock="Right" Width="140" Margin="6,0,0,0"
+                      ToolTip="Show only the clashes assigned to this person (Clash Detective 'Assigned To')"
+                      SelectionChanged="OnFilterChanged" />
             <ComboBox x:Name="StatusFilter" DockPanel.Dock="Right" Width="110" Margin="6,0,0,0"
                       SelectionChanged="OnFilterChanged" />
             <TextBox x:Name="SearchBox" TextChanged="OnFilterChanged" VerticalContentAlignment="Center" />

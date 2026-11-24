@@ -203,12 +203,12 @@ namespace NavisworksBcfClash.Navis
             var topic = new BcfTopic
             {
                 Title = $"{result.DisplayName} - {test?.DisplayName}",
-                Description = BuildDescription(result, test),
+                Description = BuildDescription(result, test, node.AssignedTo),
                 TopicType = "Clash",
                 TopicStatus = MapStatus(result.Status),
                 CreationAuthor = _options.Author,
                 CreationDate = result.CreatedTime ?? DateTime.UtcNow,
-                AssignedTo = result.AssignedTo,
+                AssignedTo = string.IsNullOrEmpty(node.AssignedTo) ? null : node.AssignedTo,
                 Viewpoint = viewpoint
             };
 
@@ -414,12 +414,14 @@ namespace NavisworksBcfClash.Navis
 
         #region Topic content
 
-        private string BuildDescription(ClashResult result, ClashTest test)
+        private string BuildDescription(ClashResult result, ClashTest test, string assignedTo)
         {
             var sb = new StringBuilder();
             sb.AppendLine($"Clash test: {test?.DisplayName}");
             sb.AppendLine($"Clash: {result.DisplayName}");
             sb.AppendLine($"Status: {result.Status}");
+            if (!string.IsNullOrEmpty(assignedTo))
+                sb.AppendLine($"Assigned to: {assignedTo}");
             sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "Distance: {0:0.###} m", result.Distance * _toMeters));
             Point3D c = result.Center;
             sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "Clash point: X={0:0.###} Y={1:0.###} Z={2:0.###} m",
