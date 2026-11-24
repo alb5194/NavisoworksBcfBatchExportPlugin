@@ -2,7 +2,7 @@ name: Build
 
 # Builds the plugin on a GitHub-hosted Windows runner (no Navisworks install needed: see
 # .github/scripts/Get-NavisworksReferences.ps1). Pushing a tag like v1.2.3 also publishes
-# a GitHub release with the installable bundle zip.
+# a GitHub release with the installable bundle zip, using .github/release-notes/<tag>.md as notes.
 
 on:
   push:
@@ -78,5 +78,8 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             gh release upload $tag "${{ steps.package.outputs.zip }}" --clobber
           } else {
-            gh release create $tag "${{ steps.package.outputs.zip }}" --title "$tag (Navisworks Manage $env:NAVISWORKS_VERSION)" --generate-notes
+            # Release notes come from .github/release-notes/<tag>.md when it exists.
+            $notes = ".github/release-notes/$tag.md"
+            $notesArgs = if (Test-Path $notes) { @('--notes-file', $notes) } else { @('--generate-notes') }
+            gh release create $tag "${{ steps.package.outputs.zip }}" --title "$tag (Navisworks Manage $env:NAVISWORKS_VERSION)" @notesArgs
           }
