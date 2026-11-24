@@ -1,0 +1,82 @@
+name: Build
+
+# Builds the plugin on a GitHub-hosted Windows runner (no Navisworks install needed: see
+# .github/scripts/Get-NavisworksReferences.ps1). Pushing a tag like v1.2.3 also publishes
+# a GitHub release with the installable bundle zip.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  NAVISWORKS_VERSION: '2024'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Download Navisworks compile-time references
+        shell: pwsh
+        run: ./.github/scripts/Get-NavisworksReferences.ps1 -OutDir "$env:RUNNER_TEMP\navisworks-refs" -NavisworksVersion $env:NAVISWORKS_VERSION
+
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF_TYPE -eq 'tag') { $v = $env:GITHUB_REF_NAME.TrimStart('v') }
+          else { $v = [regex]::Match((Get-Content -Raw NavisworksBcfClash/NavisworksBcfClash.csproj), '<PluginVersion[^>]*>([^<]+)<').Groups[1].Value }
+          "version=$v" >> $env:GITHUB_OUTPUT
+          Write-Host "Plugin version $v"
+
+      - name: Build
+        shell: pwsh
+        run: >
+          dotnet build NavisworksBcfClash/NavisworksBcfClash.csproj -c Release
+          -p:NavisworksVersion=$env:NAVISWORKS_VERSION
+          -p:NavisworksInstallPath="$env:RUNNER_TEMP\navisworks-refs"
+          -p:PluginVersion=${{ steps.version.outputs.version }}
+          -p:DeployToNavisworks=false
+
+      - name: Package
+        id: package
+        shell: pwsh
+        run: |
+          $bundle = 'NavisworksBcfClash/bin/Release/bundle'
+          # Only the plugin itself ships: Autodesk DLLs must never end up in the bundle.
+          $leaked = Get-ChildItem $bundle -Recurse -Filter 'Autodesk.*.dll'
+          if ($leaked) { throw "Autodesk DLLs found in the bundle: $($leaked.Name -join ', ')" }
+          $zip = "NavisworksBcfClash-v${{ steps.version.outputs.version }}-Navisworks$env:NAVISWORKS_VERSION.zip"
+          Compress-Archive -Path "$bundle/*" -DestinationPath $zip -Force
+          "zip=$zip" >> $env:GITHUB_OUTPUT
+          Get-ChildItem $bundle -Recurse -File | ForEach-Object { $_.FullName.Substring((Resolve-Path $bundle).Path.Length) }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.zip }}
+          path: ${{ steps.package.outputs.zip }}
+
+      - name: Publish release
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          gh release view $tag 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag "${{ steps.package.outputs.zip }}" --clobber
+          } else {
+            gh release create $tag "${{ steps.package.outputs.zip }}" --title "$tag (Navisworks Manage $env:NAVISWORKS_VERSION)" --generate-notes
+          }

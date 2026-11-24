@@ -13,7 +13,7 @@
     <RootNamespace>NavisworksBcfClash</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <PluginVersion>0.1.1</PluginVersion>
+    <PluginVersion Condition="'$(PluginVersion)' == ''">0.1.2</PluginVersion>
 
     <!-- Navisworks version/install; override with -p:NavisworksVersion=2026 etc. -->
     <NavisworksVersion Condition="'$(NavisworksVersion)' == ''">2024</NavisworksVersion>
